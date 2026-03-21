@@ -14,16 +14,17 @@ postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-
 build = "echo test"
 
 [dependencies]
-python = ">=3.8"
-numpy = "==1.26.4"
-gym = ">=0.26.1,<0.27"
-gym-box2d = ">=0.26.1,<0.27"
-matplotlib = ">=3.8.4,<3.9"
-tqdm = ">=4.66.2,<4.67"
+python = ">=3.14"
+pandas = ">=3.0.1,<4"
+numpy = ">=2.4.3,<3"
+tqdm = ">=4.67.3,<5"
+
+[pypi-dependencies]
+matplotlib = ">=3.10.8, <4"
 
 [feature.test]
 tasks = { test = "pytest" }
-pypi-dependencies = { pull-requests-analyzer = { path = "./", editable = true }, pytest = "==6.2.5", pytest-cov = "==2.12.1" }
+pypi-dependencies = { General_calc = { path = "./", editable = true }, pytest = "==6.2.5", pytest-cov = "==2.12.1" }
 
 [feature.lint.tasks]
 lint-check = "flake8 src"
@@ -45,7 +46,7 @@ isort = "==5.13.2"
 
 [feature.pre-commit]
 tasks = { pre-commit-check = "pre-commit run --all-files" }
-pypi-dependencies = { pull-requests-analyzer = { path = "./", editable = true }, pre-commit = "==3.7.0" }
+pypi-dependencies = { General_calc = { path = "./", editable = true }, pre-commit = "==3.7.0" }
 
 [feature.quarto.tasks]
 preview-docs = "quarto preview docs"
@@ -57,22 +58,15 @@ build-reports-html = "quarto render reports --to html"
 build-reports-pdf = "quarto render reports --to pdf"
 
 [feature.quarto.dependencies]
-quarto = "1.4.550"
+quarto = "==1.4.550"
 
 [feature.jupyter.pypi-dependencies]
-notebook = "*"
-nbclassic = "*"
-jupyter-console = "*"
+notebook = ">=7.5.5, <8"
+nbclassic = ">=1.3.3, <2"
+jupyter-console = ">=6.6.3, <7"
 
 [feature.jupyter-neovim.pypi-dependencies]
-jupynium = "*"
-
-[feature.deep-learning.dependencies]
-pytorch = ">=2.2.2,<2.4"
-
-[feature.deep-learning.target.linux-64.dependencies]
-pytorch = ">=2.3.0,<2.4"
-pytorch-cuda = "12.1.*"
+jupynium = ">=0.2.7, <0.3"
 
 [environments]
 default = []
