@@ -1,6 +1,8 @@
 <!-- toc -->
 
-# $ProjectName
+# Reference Manager. Git
+Reference Management of repositories using git.
+
 ## [Methodology chosen][2]
 [Data Science Lifecycle Process][1].
 See [Branch Types][3] for branching naming model.
