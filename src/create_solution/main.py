@@ -12,7 +12,8 @@ from pathlib import Path
 
 import git
 
-SOLUTION_DIR = Path.home() / ".bookmarks/Projects/ChronoIndex/Current" / args.solution_name
+SOLUTIONS_ROOT = Path.home() / ".bookmarks/Projects/ChronoIndex/Current"
+
 
 def resolve_commit(repo_path: Path, ref: str) -> str:
     """Resolve a git ref (commit hash, branch, HEAD~N, etc.) to a full commit hash."""
@@ -33,10 +34,12 @@ def run_git(cwd: Path, *args):
         sys.exit(1)
     return result.stdout.strip()
 
+
 def is_git_repo(dir: Path):
     repo_root = run_git(dir, "-C", dir, "rev-parse", "--git-dir")
 
     return Path(repo_root).is_relative_to(repo_root)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Create a sparse solution repository from a commit range.")
@@ -50,7 +53,8 @@ def main():
         print("Error: Current directory is not a git repository", file=sys.stderr)
         sys.exit(1)
 
-    SOLUTION_DIR.mkdir(parents=True, exist_ok=True)
+    solution_dir = SOLUTIONS_ROOT / args.solution_name
+    solution_dir.mkdir(parents=True, exist_ok=True)
 
     # Parse commit range
     if ".." in args.commit_spec:
@@ -67,37 +71,37 @@ def main():
 
     # Clone with no checkout
     try:
-        repo = git.Repo.clone_from(f"file://{source_repo}", SOLUTION_DIR, no_checkout=True)
+        repo = git.Repo.clone_from(f"file://{source_repo}", solution_dir, no_checkout=True)
     except Exception as e:
         print(f"Clone failed: {e}", file=sys.stderr)
         sys.exit(1)
 
     # Enable sparse checkout (non-cone mode)
-    run_git(SOLUTION_DIR, "sparse-checkout", "init", "--no-cone")
+    run_git(solution_dir, "sparse-checkout", "init", "--no-cone")
 
     # Set exact file paths (strip leading './' if any)
     patterns = [p.lstrip("./") for p in args.paths]
-    with open(SOLUTION_DIR / ".git" / "info" / "sparse-checkout", "w") as f:
+    with open(solution_dir / ".git" / "info" / "sparse-checkout", "w") as f:
         print(patterns)
         for pattern in patterns:
             f.write(pattern + "\n")
 
     # Reapply sparse checkout to ensure it takes effect
-    run_git(SOLUTION_DIR, "sparse-checkout", "reapply")
+    run_git(solution_dir, "sparse-checkout", "reapply")
 
     # Checkout the desired commit
-    run_git(SOLUTION_DIR, "checkout", end_commit)
+    run_git(solution_dir, "checkout", end_commit)
 
     # Create a branch for the solution
     branch_name = f"solution/{args.solution_name}"
-    run_git(SOLUTION_DIR, "checkout", "-b", branch_name)
+    run_git(solution_dir, "checkout", "-b", branch_name)
 
     # Optionally fetch start commit if range was given
     if is_range and start_commit:
-        run_git(SOLUTION_DIR, "fetch", "origin", start_commit)
+        run_git(solution_dir, "fetch", "origin", start_commit)
 
     # Write metadata
-    meta_dir = SOLUTION_DIR / ".solution-meta"
+    meta_dir = solution_dir / ".solution-meta"
     meta_dir.mkdir(exist_ok=True)
     metadata = {
         "name": args.solution_name,
@@ -112,14 +116,15 @@ def main():
         json.dump(metadata, f, indent=2)
 
     # Clean up (optional)
-    run_git(SOLUTION_DIR, "reflog", "expire", "--expire=now", "--all")
-    run_git(SOLUTION_DIR, "gc", "--prune=now")
+    run_git(solution_dir, "reflog", "expire", "--expire=now", "--all")
+    run_git(solution_dir, "gc", "--prune=now")
 
-    print(f"\n✅ Solution created at: {SOLUTION_DIR}")
+    print(f"\n✅ Solution created at: {solution_dir}")
     print(f"   Working directory contains only: {', '.join(patterns)}")
-    print(f"   Repository size: {subprocess.check_output(['du', '-sh', str(SOLUTION_DIR / '.git')]).decode().split()[0]}")
+    print(f"   Repository size: {subprocess.check_output(['du', '-sh', str(solution_dir / '.git')]).decode().split()[0]}")
     print("\nTo later update this solution from the source repo:")
-    print(f"  cd {SOLUTION_DIR} && git fetch origin && git merge origin/main")
+    print(f"  cd {solution_dir} && git fetch origin && git merge origin/main")
+
 
 if __name__ == "__main__":
     main()
