@@ -47,3 +47,6 @@ pypi-dependencies = { ReferenceManager__Git = { path = "./", editable = true }, 
 [environments]
 default = []
 dev = ["test", "lint", "pre-commit"]
+
+[pypi-dependencies]
+gitpython = ">=3.1.46, <4"
